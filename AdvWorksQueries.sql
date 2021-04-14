@@ -97,3 +97,71 @@ ON SalesAgg.SalesPersonID = MaxItems.SalesPersonID
 AND SalesAgg.TotalSold = MaxItems.MostSold
 JOIN Production.Product as c
 ON c.ProductID = SalesAgg.ProductID
+
+--Find the top ten items by profit generation in the history of the DB
+-- Order Detail Table with Calculated Profit by LineItem
+SELECT TOP 10 ProductID
+	, Name
+	, SUM(LineTotalProfit) as HistoricalProfit
+From (
+	SELECT a.ProductID as ProductID
+		, c.Name
+		, OrderQty
+		, UnitPrice
+		, b.StandardCost
+		, a.ModifiedDate
+		, UnitPrice - b.StandardCost as UnitProfit
+		, OrderQty*(UnitPrice - b.StandardCost) as LineTotalProfit 
+	FROM Sales.SalesOrderDetail as a
+	JOIN (SELECT ProductID
+			, StartDate
+		,CASE
+			WHEN EndDate IS NULL THEN GETDATE()
+			ELSE EndDate
+		END as EndDate
+			, StandardCost
+			, ModifiedDate
+		FROM Production.ProductCostHistory)b
+	ON a.ProductID = b.ProductID
+	AND a.ModifiedDate >= StartDate
+	AND a.ModifiedDate < EndDate
+	JOIN Production.Product as c
+	ON a.ProductID = c.ProductID
+	WHERE SpecialOfferID = 1
+)ProfitTable
+GROUP BY ProductId, Name
+ORDER BY HistoricalProfit DESC
+
+--Bottom Ten
+SELECT TOP 10 ProductID
+	, Name
+	, SUM(LineTotalProfit) as HistoricalProfit
+From (
+	SELECT a.ProductID as ProductID
+		, c.Name
+		, OrderQty
+		, UnitPrice
+		, b.StandardCost
+		, a.ModifiedDate
+		, UnitPrice - b.StandardCost as UnitProfit
+		, OrderQty*(UnitPrice - b.StandardCost) as LineTotalProfit 
+	FROM Sales.SalesOrderDetail as a
+	JOIN (SELECT ProductID
+			, StartDate
+		,CASE
+			WHEN EndDate IS NULL THEN GETDATE()
+			ELSE EndDate
+		END as EndDate
+			, StandardCost
+			, ModifiedDate
+		FROM Production.ProductCostHistory)b
+	ON a.ProductID = b.ProductID
+	AND a.ModifiedDate >= StartDate
+	AND a.ModifiedDate < EndDate
+	JOIN Production.Product as c
+	ON a.ProductID = c.ProductID
+	WHERE SpecialOfferID = 1
+)ProfitTable
+GROUP BY ProductId, Name
+ORDER BY HistoricalProfit ASC
+;
