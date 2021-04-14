@@ -48,14 +48,17 @@ ORDER BY SalesOrderID
 ;
 -- WORKING AREA
 
-SELECT * FROM SalesOrder
+SELECT * FROM Sales.SalesOrderHeader
 
 
--- Profit By Sale
-SELECT SalesOrderID
-	, SUM(LineTotalProfit)
-FROM dbo.vw_OrderProfitDetails
-GROUP BY SalesOrderID
+-- Profit By Territory
+SELECT a.SalesOrderID
+	, a.SalesPersonID
+FROM Sales.SalesOrderHeader AS a
+WHERE a.SalesPersonID IS NOT NULL
 
-
-
+SELECT BusinessEntityID
+	, TerritoryID
+	, StartDate
+	, CASE WHEN EndDate IS NULL THEN GETDATE() ELSE EndDate END as EndDate
+FROM Sales.SalesTerritoryHistory
