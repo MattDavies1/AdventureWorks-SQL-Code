@@ -58,3 +58,42 @@ GROUP BY a.TerritoryID, Name
 ORDER BY SUM(c.OrderTotalProfit) DESC
 
 
+
+-- ##########################
+-- ##### SALES ANALYSIS #####
+-- ##########################
+
+-- Find what Item Each SalesPerson Sells the most of
+SELECT MaxItems.SalesPersonID
+	, MaxItems.MostSold
+	, SalesAgg.ProductID
+	, c.Name
+FROM (
+	SELECT SalesPersonID
+	, MAX(TotalSold) as MostSold
+FROM (
+	SELECT b.SalesPersonID
+		, ProductID
+		, SUM(OrderQty) as TotalSold
+	FROM Sales.SalesOrderDetail as a
+	JOIN Sales.SalesOrderHeader as b
+	ON a.SalesOrderId = b.SalesOrderID
+	WHERE SalesPersonID is NOT NULL
+	GROUP BY b.SalesPersonID, ProductID
+)ItemTotals
+GROUP BY SalesPersonID
+)MaxItems
+JOIN (
+	SELECT b.SalesPersonID
+		, ProductID
+		, SUM(OrderQty) as TotalSold
+	FROM Sales.SalesOrderDetail as a
+	JOIN Sales.SalesOrderHeader as b
+	ON a.SalesOrderId = b.SalesOrderID
+	WHERE SalesPersonID is NOT NULL
+	GROUP BY b.SalesPersonID, ProductID
+)SalesAgg
+ON SalesAgg.SalesPersonID = MaxItems.SalesPersonID
+AND SalesAgg.TotalSold = MaxItems.MostSold
+JOIN Production.Product as c
+ON c.ProductID = SalesAgg.ProductID
