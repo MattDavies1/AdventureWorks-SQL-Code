@@ -2,18 +2,11 @@ USE [AdventureWorks2019]
 GO
 ;
 
--- Find which product each sales person sells the most of
-
-
 -- ##### Profit Analysis #####
-
 -- StdCost of each product at a given time with NULLS removed
 SELECT ProductID
 	, StartDate
-,CASE
-	WHEN EndDate IS NULL THEN GETDATE()
-	ELSE EndDate
-END as EndDate
+	, CASE WHEN EndDate IS NULL THEN GETDATE() ELSE EndDate END as EndDate
 	, StandardCost
 	, ModifiedDate
 FROM Production.ProductCostHistory
@@ -46,19 +39,22 @@ ON a.ProductID = c.ProductID
 WHERE SpecialOfferID = 1
 ORDER BY SalesOrderID
 ;
--- WORKING AREA
-
-SELECT * FROM Sales.SalesOrderHeader
-
 
 -- Profit By Territory
-SELECT a.SalesOrderID
-	, a.SalesPersonID
+SELECT a.TerritoryID
+	, b.NAME
+	, SUM(c.OrderTotalProfit)
 FROM Sales.SalesOrderHeader AS a
-WHERE a.SalesPersonID IS NOT NULL
+JOIN Sales.SalesTerritory as b
+ON a.TerritoryID = b.TerritoryID
+INNER JOIN (
+	SELECT SUM(LineTotalProfit) as OrderTotalProfit
+		, SalesOrderID
+	FROM dbo.vw_OrderProfitDetails
+	GROUP BY SalesOrderID)c
+ON a.SalesOrderID = c.SalesOrderID
+WHERE a.OnlineOrderFlag = 0
+GROUP BY a.TerritoryID, Name
+ORDER BY SUM(c.OrderTotalProfit) DESC
 
-SELECT BusinessEntityID
-	, TerritoryID
-	, StartDate
-	, CASE WHEN EndDate IS NULL THEN GETDATE() ELSE EndDate END as EndDate
-FROM Sales.SalesTerritoryHistory
+
