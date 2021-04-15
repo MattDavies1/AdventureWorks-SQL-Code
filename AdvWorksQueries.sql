@@ -110,6 +110,8 @@ ON c.ProductID = SalesAgg.ProductID
 
 -- Find the top ten items by profit generation in the history of the DB
 -- Order Detail Table with Calculated Profit by LineItem
+-- Note: The road-250 & road-450 serries bike underperformed significantly versus their -150 counterpart
+
 SELECT TOP 10 ProductID
 	, Name
 	, SUM(LineTotalProfit) as HistoricalProfit
