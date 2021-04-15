@@ -28,7 +28,7 @@ SELECT SalesOrderID
 	, UnitPrice - b.StandardCost as UnitProfit
 	, OrderQty*(UnitPrice - b.StandardCost) as LineTotalProfit 
 FROM Sales.SalesOrderDetail as a
-JOIN (SELECT ProductID
+LEFT JOIN (SELECT ProductID
 		, StartDate
 	,CASE
 		WHEN EndDate IS NULL THEN GETDATE()
@@ -40,7 +40,7 @@ JOIN (SELECT ProductID
 ON a.ProductID = b.ProductID
 AND a.ModifiedDate >= StartDate
 AND a.ModifiedDate < EndDate
-JOIN Production.Product as c
+LEFT JOIN Production.Product as c
 ON a.ProductID = c.ProductID
 WHERE SpecialOfferID = 1
 ORDER BY SalesOrderID
@@ -55,7 +55,7 @@ SELECT a.TerritoryID
 	, b.NAME
 	, SUM(c.OrderTotalProfit)
 FROM Sales.SalesOrderHeader AS a
-JOIN Sales.SalesTerritory as b
+LEFT JOIN Sales.SalesTerritory as b
 ON a.TerritoryID = b.TerritoryID
 INNER JOIN (
 	SELECT SUM(LineTotalProfit) as OrderTotalProfit
@@ -86,26 +86,26 @@ FROM (
 		, ProductID
 		, SUM(OrderQty) as TotalSold
 	FROM Sales.SalesOrderDetail as a
-	JOIN Sales.SalesOrderHeader as b
+	LEFT JOIN Sales.SalesOrderHeader as b
 	ON a.SalesOrderId = b.SalesOrderID
 	WHERE SalesPersonID is NOT NULL
 	GROUP BY b.SalesPersonID, ProductID
 )ItemTotals
 GROUP BY SalesPersonID
 )MaxItems
-JOIN (
+LEFT JOIN (
 	SELECT b.SalesPersonID
 		, ProductID
 		, SUM(OrderQty) as TotalSold
 	FROM Sales.SalesOrderDetail as a
-	JOIN Sales.SalesOrderHeader as b
+	LEFT JOIN Sales.SalesOrderHeader as b
 	ON a.SalesOrderId = b.SalesOrderID
 	WHERE SalesPersonID is NOT NULL
 	GROUP BY b.SalesPersonID, ProductID
 )SalesAgg
 ON SalesAgg.SalesPersonID = MaxItems.SalesPersonID
 AND SalesAgg.TotalSold = MaxItems.MostSold
-JOIN Production.Product as c
+LEFT JOIN Production.Product as c
 ON c.ProductID = SalesAgg.ProductID
 
 -- Find the top ten items by profit generation in the history of the DB
@@ -125,7 +125,7 @@ From (
 		, UnitPrice - b.StandardCost as UnitProfit
 		, OrderQty*(UnitPrice - b.StandardCost) as LineTotalProfit 
 	FROM Sales.SalesOrderDetail as a
-	JOIN (SELECT ProductID
+	LEFT JOIN (SELECT ProductID
 			, StartDate
 		,CASE
 			WHEN EndDate IS NULL THEN GETDATE()
@@ -137,7 +137,7 @@ From (
 	ON a.ProductID = b.ProductID
 	AND a.ModifiedDate >= StartDate
 	AND a.ModifiedDate < EndDate
-	JOIN Production.Product as c
+	LEFT JOIN Production.Product as c
 	ON a.ProductID = c.ProductID
 	WHERE SpecialOfferID = 1
 )ProfitTable
@@ -158,7 +158,7 @@ From (
 		, UnitPrice - b.StandardCost as UnitProfit
 		, OrderQty*(UnitPrice - b.StandardCost) as LineTotalProfit 
 	FROM Sales.SalesOrderDetail as a
-	JOIN (SELECT ProductID
+	LEFT JOIN (SELECT ProductID
 			, StartDate
 		,CASE
 			WHEN EndDate IS NULL THEN GETDATE()
@@ -170,7 +170,7 @@ From (
 	ON a.ProductID = b.ProductID
 	AND a.ModifiedDate >= StartDate
 	AND a.ModifiedDate < EndDate
-	JOIN Production.Product as c
+	LEFT JOIN Production.Product as c
 	ON a.ProductID = c.ProductID
 	WHERE SpecialOfferID = 1
 )ProfitTable
