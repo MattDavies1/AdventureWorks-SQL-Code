@@ -3,7 +3,10 @@ GO
 ;
 
 -- ##### Profit Analysis #####
--- StdCost of each product at a given time with NULLS removed
+
+-- StdCost of each product at a given time with NULLS removed from date
+-- Use for finding the cost of a product at the time of sale below
+
 SELECT ProductID
 	, StartDate
 	, CASE WHEN EndDate IS NULL THEN GETDATE() ELSE EndDate END as EndDate
@@ -12,6 +15,9 @@ SELECT ProductID
 FROM Production.ProductCostHistory
 
 -- Order Detail Table with Calculated Profit by LineItem
+-- Profit is Calculated by subtracting UnitPrice (at time of Sale) by Standard Cost (at time of Sale)
+-- Promotional Items are excluded as clearance sales often sell at well below cost
+
 SELECT SalesOrderID
 	, a.ProductID
 	, c.Name
@@ -40,7 +46,11 @@ WHERE SpecialOfferID = 1
 ORDER BY SalesOrderID
 ;
 
--- Profit By Territory
+-- Profit By Territory (Excluding Promotions)
+-- The bove query is grouped by region.
+-- Note WESTERN-US is highest profit region
+-- Note: Foreign Markets have generated less profit, with some (AUS & GER) operating at a NET LOSS
+
 SELECT a.TerritoryID
 	, b.NAME
 	, SUM(c.OrderTotalProfit)
@@ -59,11 +69,11 @@ ORDER BY SUM(c.OrderTotalProfit) DESC
 
 
 
--- ##########################
 -- ##### SALES ANALYSIS #####
--- ##########################
 
--- Find what Item Each SalesPerson Sells the most of
+-- Product Sold Most often by each Sales Person
+-- Note that these items are apparel, NOT bikes. These items do not have much profit marginne and are often sold at a loss as a loss-leader.
+
 SELECT MaxItems.SalesPersonID
 	, MaxItems.MostSold
 	, SalesAgg.ProductID
@@ -98,7 +108,7 @@ AND SalesAgg.TotalSold = MaxItems.MostSold
 JOIN Production.Product as c
 ON c.ProductID = SalesAgg.ProductID
 
---Find the top ten items by profit generation in the history of the DB
+-- Find the top ten items by profit generation in the history of the DB
 -- Order Detail Table with Calculated Profit by LineItem
 SELECT TOP 10 ProductID
 	, Name
